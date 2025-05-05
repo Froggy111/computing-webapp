@@ -10,3 +10,9 @@ impl fmt::Display for ErrorStr {
         write!(f, "{}", self.error)
     }
 }
+
+impl ErrorStr {
+    pub fn new(error: String) -> Self {
+        Self { error }
+    }
+}
