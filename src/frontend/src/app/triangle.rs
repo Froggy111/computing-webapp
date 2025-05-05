@@ -1,4 +1,5 @@
 use crate::libs::rendering::canvas::*;
+use crate::libs::types::errors::ErrorStr;
 
 use leptos::html::Canvas;
 use leptos::logging;
@@ -37,9 +38,12 @@ fn triangle_init(web_gl_canvas: &WebGlCanvas) -> bool {
         .unwrap();
     if let Some(gl) = gl_opt.as_mut() {
         // do stuff
-        canvas.set_width(1000);
-        canvas.set_height(1000);
-        gl.viewport(0, 0, 1000, 1000);
+        logging::log!(
+            "Init canvas width: {}, height: {}",
+            canvas.width(),
+            canvas.height()
+        );
+        gl.viewport(0, 0, canvas.width() as i32, canvas.height() as i32);
         let vert_s = match compile_shader(
             &gl,
             WebGl2RenderingContext::VERTEX_SHADER,
@@ -112,11 +116,52 @@ fn triangle_init(web_gl_canvas: &WebGlCanvas) -> bool {
     }
 }
 
+fn triangle_resize(
+    web_gl_canvas: &WebGlCanvas,
+    resize_entry: &ResizeObserverEntry,
+) -> Result<(), ErrorStr> {
+    logging::log!("triangle_resize called");
+    let canvas = web_gl_canvas
+        .get_canvas_mut()
+        .as_mut()
+        .unwrap()
+        .get()
+        .unwrap();
+    let mut gl_opt = web_gl_canvas.get_context_mut();
+    let mut gl = if let Some(gl) = gl_opt.as_mut() {
+        gl
+    } else {
+        logging::error!(
+            "GL context is none in triangle_resize, using {:?}",
+            web_gl_canvas
+        );
+        return Err(ErrorStr::new(format!(
+            "GL context is none in triangle_resize, using {:?}",
+            web_gl_canvas
+        )));
+    };
+    let rect = resize_entry.content_rect();
+    logging::log!(
+        "Resize observer width: {}, height: {}",
+        rect.width(),
+        rect.height()
+    );
+    canvas.set_width(rect.width() as u32);
+    canvas.set_height(rect.height() as u32);
+    gl.viewport(0, 0, rect.width() as i32, rect.height() as i32);
+    gl.clear_color(0.0, 0.0, 0.0, 1.0);
+    gl.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
+    gl.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, 3);
+    Ok(())
+}
+
 #[component]
 pub fn Triangle2() -> impl IntoView {
     let web_gl_canvas = WebGlCanvas::new("Triangle");
     let init_task = InitTask::new(triangle_init, "Triangle init");
+    let resize_task = ResizeTask::new(triangle_resize, "Triangle resize");
     web_gl_canvas.add_init_task(init_task);
+    web_gl_canvas.add_resize_task(resize_task);
     view! { <WebGlCanvasComponent web_gl_canvas=web_gl_canvas /> }
 }
 

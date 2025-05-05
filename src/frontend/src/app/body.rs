@@ -4,10 +4,6 @@ use leptos::prelude::*;
 
 #[component]
 pub fn Body() -> impl IntoView {
-    view! {
-        <Button />
-        <div class="h-screen flex justify-center items-center">
-            <Triangle2 />
-        </div>
-    }
+    let triangle_spread = view! { <{..} class="block w-screen h-screen" /> };
+    view! { <Triangle2 {..triangle_spread} /> }
 }
