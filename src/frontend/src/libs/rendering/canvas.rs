@@ -140,46 +140,55 @@ impl<'a> WebGlCanvas<'a> {
         if !self.initialised.get() {
             self.set_initialised.set(true);
             logging::log!("Initialising WebGlCanvas: {}", self);
-            let canvas_ref = (*self.canvas_ref.borrow()).unwrap();
-            if let Some(canvas) = canvas_ref.get() {
-                self.set_width.set(canvas.width());
-                self.set_height.set(canvas.height());
-                let canvas_element = &canvas;
-                let context = canvas_element.get_context("webgl2");
-                match context {
-                    Ok(context_opt) => {
-                        if let Some(context) = context_opt {
-                            let rendering_context = context.dyn_into::<WebGl2RenderingContext>();
-                            match rendering_context {
-                                Ok(rendering_context) => {
-                                    self.set_context(Some(rendering_context));
-                                }
-                                Err(_) => {
-                                    logging::error!(
-                                        "Could not dyn_into canvas webgl2 context into webgl2 rendering context, in {:?}", self
-                                    );
-                                    self.set_context(None);
-                                    self.set_initialised.set(false);
-                                }
-                            }
-                        } else {
-                            logging::error!("Canvas webgl2 context is None, in {:?}", self);
-                            self.set_initialised.set(false);
-                        }
-                    }
-                    Err(error) => {
-                        logging::error!(
-                            "Error when getting canvas webgl2 context. Error: {:?}, in {:?}",
-                            error,
-                            self
-                        );
-                    }
-                }
+            let canvas_ref_opt = (*self.canvas_ref.borrow());
+            let canvas_ref = if let Some(canvas_ref) = canvas_ref_opt {
+                canvas_ref
             } else {
-                logging::error!("canvas_ref is None, in {:?}", self);
+                logging::error!("Canvas NodeRef is None, in {:?}", self);
                 self.set_initialised.set(false);
                 return;
-            }
+            };
+            let canvas = if let Some(canvas) = canvas_ref.get() {
+                canvas
+            } else {
+                logging::error!("HtmlCanvasElement is None, in {:?}", self);
+                self.set_initialised.set(false);
+                return;
+            };
+            self.set_width.set(canvas.width());
+            self.set_height.set(canvas.height());
+            let canvas_element = &canvas;
+            let context_opt = match canvas_element.get_context("webgl2") {
+                Ok(context_opt) => context_opt,
+                Err(error) => {
+                    logging::error!(
+                        "Error when getting canvas webgl2 context. Error: {:?}, in {:?}",
+                        error,
+                        self
+                    );
+                    self.set_initialised.set(false);
+                    return;
+                }
+            };
+            let context_obj = if let Some(context) = context_opt {
+                context
+            } else {
+                logging::error!("Canvas webgl2 context is None, in {:?}", self);
+                self.set_initialised.set(false);
+                return;
+            };
+            let context = match context_obj.dyn_into::<WebGl2RenderingContext>() {
+                Ok(context) => context,
+                Err(_) => {
+                    logging::error!(
+                                        "Could not dyn_into canvas webgl2 context into webgl2 rendering context, in {:?}", self
+                                    );
+                    self.set_context(None);
+                    self.set_initialised.set(false);
+                    return;
+                }
+            };
+            self.set_context(Some(context));
         }
         let mut tasks = self.init_tasks.borrow_mut();
         for task in tasks.iter_mut() {
