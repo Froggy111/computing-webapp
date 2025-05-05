@@ -40,9 +40,9 @@ pub fn start() -> Result<(), JsValue> {
     gl.use_program(Some(&program));
     // Set up the vertices
     let vertices: [f32; 6] = [
-        0.0,  0.5,  // Top vertex
-       -0.5, -0.5,  // Bottom left vertex
-        0.5, -0.5,  // Bottom right vertex
+        0.0, 0.5, // Top vertex
+        -0.5, -0.5, // Bottom left vertex
+        0.5, -0.5, // Bottom right vertex
     ];
     let buffer = gl.create_buffer().ok_or("Failed to create buffer")?;
     gl.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&buffer));
@@ -64,6 +64,7 @@ pub fn start() -> Result<(), JsValue> {
     gl.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, 3);
     Ok(())
 }
+
 fn compile_shader(
     gl: &WebGl2RenderingContext,
     shader_type: u32,
@@ -74,7 +75,8 @@ fn compile_shader(
         .ok_or("Unable to create shader object")?;
     gl.shader_source(&shader, source);
     gl.compile_shader(&shader);
-    if gl.get_shader_parameter(&shader, WebGl2RenderingContext::COMPILE_STATUS)
+    if gl
+        .get_shader_parameter(&shader, WebGl2RenderingContext::COMPILE_STATUS)
         .as_bool()
         .unwrap_or(false)
     {
@@ -94,7 +96,8 @@ fn link_program(
     gl.attach_shader(&program, vertex_shader);
     gl.attach_shader(&program, fragment_shader);
     gl.link_program(&program);
-    if gl.get_program_parameter(&program, WebGl2RenderingContext::LINK_STATUS)
+    if gl
+        .get_program_parameter(&program, WebGl2RenderingContext::LINK_STATUS)
         .as_bool()
         .unwrap_or(false)
     {

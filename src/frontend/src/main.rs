@@ -1,6 +1,7 @@
+#![feature(trait_alias)]
 //! main.rs
-
 mod app;
+mod libs;
 use app::body::Body;
 
 fn main() {
