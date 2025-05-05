@@ -3,6 +3,10 @@ name = "frontend"
 version = "0.1.0"
 edition = "2024"
 
+[profile.release]
+lto = true
+opt-level = 's'
+
 [dependencies]
 console_error_panic_hook = "0.1.7"
 leptos = { version = "0.8", features = ["csr"] }
@@ -21,6 +25,3 @@ web-sys = { version = "0.3", features = [
     'Window',
 ] }
 tachys = "0.2.0"
-
-[package.metadata.leptos]
-style-file = "./style/output.css"
