@@ -12,7 +12,12 @@ impl fmt::Display for ErrorStr {
 }
 
 impl ErrorStr {
-    pub fn new(error: String) -> Self {
-        Self { error }
+    pub fn new<S>(error: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self {
+            error: error.into(),
+        }
     }
 }
