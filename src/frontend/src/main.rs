@@ -1,5 +1,7 @@
-#![feature(trait_alias)]
 //! main.rs
+#![feature(trait_alias)]
+#![allow(dead_code)]
+#![allow(unused)]
 mod app;
 mod libs;
 use app::body::Body;
